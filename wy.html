@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医患对话记录系统 - 前端界面</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --doctor-color: #36b9cc;
+            --patient-color: #f6c23e;
+            --light-bg: #f8f9fc;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        .app-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            border-radius: 0.35rem;
+            overflow: hidden;
+        }
+        
+        .app-header {
+            background: linear-gradient(135deg, #1a2a6c 0%, #224abe 100%);
+            color: white;
+            padding: 1.5rem;
+            position: relative;
+        }
+        
+        .app-body {
+            padding: 2rem;
+            background: white;
+        }
+        
+        .doctor-text {
+            color: var(--doctor-color);
+            font-weight: 600;
+        }
+        
+        .patient-text {
+            color: var(--patient-color);
+            font-weight: 600;
+        }
+        
+        .transcript-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e3e6f0;
+            border-radius: 0.35rem;
+            padding: 1rem;
+            background-color: var(--light-bg);
+            margin-bottom: 1.5rem;
+        }
+        
+        .medical-report {
+            white-space: pre-wrap;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.35rem;
+            border: 1px solid #e3e6f0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .btn-record {
+            background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+            border: none;
+            font-weight: 600;
+        }
+        
+        .btn-record.recording {
+            background: linear-gradient(135deg, #2ecc71 0%, #1cc88a 100%);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #0f9d7a 100%);
+            border: none;
+            font-weight: 600;
+        }
+        
+        .btn-upload {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            border: none;
+            font-weight: 600;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .status-recording {
+            background-color: var(--secondary-color);
+        }
+        
+        .status-idle {
+            background-color: #858796;
+        }
+        
+        .feature-card {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            padding: 1rem 0;
+        }
+        
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .speaker-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .speaker-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .speaker-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .speaker-btn.doctor.active {
+            background: var(--doctor-color);
+            border-color: var(--doctor-color);
+        }
+        
+        .speaker-btn.patient.active {
+            background: var(--patient-color);
+            border-color: var(--patient-color);
+        }
+        
+        .real-time-transcript {
+            min-height: 100px;
+            border: 1px dashed #dee2e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        /* 新增样式 */
+        .record-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #e74c3c;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        .record-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0);
+            border-radius: 50%;
+            transition: transform 0.5s ease;
+        }
+        
+        .record-btn:hover:before {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+        
+        .record-btn.recording {
+            background: #2ecc71;
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .emr-section {
+            margin-bottom: 25px;
+        }
+        
+        .emr-label {
+            font-weight: bold;
+            color: #1a2a6c;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .emr-label i {
+            margin-right: 10px;
+        }
+        
+        .emr-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1a2a6c;
+            min-height: 60px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #uploadArea {
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #cameraPreview {
+            background: #000;
+            max-height: 250px;
+        }
+
+        .patient-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 15px;
+        }
+
+        .patient-info-grid span {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 8px;
+        }
+
+        .report-section {
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        .report-section .section-title {
+            font-size: 1.05rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .report-section .section-content {
+            padding-left: 24px;
+        }
+
+        #imagePreviewContainer {
+            transition: all 0.3s;
+        }
+
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .patient-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #cameraPreview {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 头部 -->
+        <div class="app-header">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-heartbeat me-3" style="font-size: 2rem;"></i>
+                <div>
+                    <h1 class="h4 mb-0">语音识别病历生成系统</h1>
+                    <p class="small mb-0 opacity-75">使用AI技术将医患对话实时转换为结构化电子病历</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主体内容 -->
+        <div class="app-body">
+            <!-- 系统状态卡片 -->
+            <div class="card feature-card mb-4 border-0">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-1"><i class="fas fa-info-circle text-primary me-2"></i>系统状态</h5>
+                            <p class="small text-muted mb-0" id="connectionStatus">等待连接后端服务</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex justify-content-end align-items-center">
+                                <div class="me-3">
+                                    <div class="small text-muted">录音状态</div>
+                                    <div class="fw-bold">
+                                        <span class="status-indicator status-idle" id="recordingStatusIcon"></span>
+                                        <span id="recordingStatusText">待机</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 功能选项卡 -->
+            <ul class="nav nav-tabs mb-4" id="functionTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="realtime-tab" data-bs-toggle="tab" data-bs-target="#realtime" type="button" role="tab">实时录音识别</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="audiofile-tab" data-bs-toggle="tab" data-bs-target="#audiofile" type="button" role="tab">音频文件识别</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="textinput-tab" data-bs-toggle="tab" data-bs-target="#textinput" type="button" role="tab">文本输入生成</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="doctab" data-bs-toggle="tab" data-bs-target="#docpanel">报告识别</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="faychat-tab"
+                            data-bs-toggle="tab" data-bs-target="#faychat"
+                            type="button" role="tab">
+                        智能问答
+                    </button>
+                </li>
+
+            </ul>
+            
+            <div class="tab-content" id="functionTabsContent">
+                <!-- 实时录音识别 -->
+                <div class="tab-pane fade show active" id="realtime" role="tabpanel">
+                    <div class="controls text-center">
+                        <button id="recordBtn" class="record-btn">开始录音</button>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0"><i class="fas fa-comments me-2"></i>实时转写文本</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="transcript-container" id="transcript">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fas fa-headphones fa-2x"></i>
+                                            <p class="mt-2">语音转写内容将显示在这里</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0"><i class="fas fa-file-medical me-2"></i>结构化病历</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="transcript-container" id="emrContainer">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fas fa-file-medical fa-2x"></i>
+                                            <p class="mt-2">AI生成的结构化病历将显示在这里</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button id="generateFromTranscriptBtn" class="btn btn-generate text-white w-100 py-3">
+                                <i class="fas fa-file-medical me-2"></i> 生成病历
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 音频文件识别 -->
+                <div class="tab-pane fade" id="audiofile" role="tabpanel">
+                    <div class="mb-4">
+                        <label for="fileInput" class="btn btn-upload text-white w-100 py-3">
+                            <i class="fas fa-upload me-2"></i> 选择音频文件
+                        </label>
+                        <input type="file" id="fileInput" accept="audio/*">
+                        <div class="mt-2 small text-muted" id="fileName">未选择文件</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0"><i class="fas fa-comments me-2"></i>转写文本</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="transcript-container" id="fileTranscriptContainer">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fas fa-file-audio fa-2x"></i>
+                                            <p class="mt-2">上传音频文件后，识别结果将显示在这里</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0"><i class="fas fa-file-medical me-2"></i>结构化病历</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="transcript-container" id="fileEmrContainer">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fas fa-file-medical fa-2x"></i>
+                                            <p class="mt-2">AI生成的结构化病历将显示在这里</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="generateFromFileBtn" class="btn btn-generate text-white w-100 py-3 mt-3" disabled>
+                        <i class="fas fa-file-medical me-2"></i> 生成病历
+                    </button>
+                </div>
+                
+                <!-- 文本输入生成 -->
+                <div class="tab-pane fade" id="textinput" role="tabpanel">
+                    <div class="mb-3">
+                        <label for="textInput" class="form-label">输入医患对话文本</label>
+                        <textarea class="form-control" id="textInput" rows="6" placeholder="请输入医生和患者的对话内容..."></textarea>
+                    </div>
+                    
+                    <!-- 添加结果显示容器 -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-file-medical me-2"></i>生成的结构化病历</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="transcript-container" id="textEmrContainer">
+                                <div class="text-center text-muted py-5">
+                                    <i class="fas fa-file-medical fa-2x"></i>
+                                    <p class="mt-2">生成的结构化病历将显示在这里</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="generateFromTextBtn" class="btn btn-generate text-white w-100 py-3 mt-3">
+                        <i class="fas fa-file-medical me-2"></i> 生成病历
+                    </button>
+                </div>
+                <!-- 报告识别 -->
+                <div class="tab-pane fade" id="docpanel" role="tabpanel">
+                    <div class="row">
+                        <!-- 左侧上传区域 -->
+                        <div class="col-md-5">
+                            <div class="card mb-3">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-camera me-2"></i> 拍摄/上传报告</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center p-4 border-dashed rounded" id="uploadArea">
+                                        <div id="cameraView" style="display:none;">
+                                            <video id="cameraPreview" width="100%" autoplay></video>
+                                            <button id="takePhotoBtn" class="btn btn-danger mt-2">
+                                                <i class="fas fa-camera me-2"></i> 拍摄
+                                            </button>
+                                        </div>
+                                        <div id="uploadView">
+                                            <i class="fas fa-file-medical fa-3x text-primary mb-3"></i>
+                                            <h5>拍摄纸质报告或上传图片</h5>
+                                            <p class="text-muted small">支持JPG/PNG格式，建议光线充足、文字清晰</p>
+                                            <div class="btn-group mt-2">
+                                                <button id="openCameraBtn" class="btn btn-outline-primary">
+                                                    <i class="fas fa-camera me-2"></i> 拍摄
+                                                </button>
+                                                <label class="btn btn-primary">
+                                                    <i class="fas fa-cloud-upload-alt me-2"></i> 上传
+                                                    <input type="file" id="docUpload" accept="image/*" capture="environment" hidden>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 图片预览 -->
+                                    <div id="imagePreviewContainer" class="mt-3 text-center" style="display:none;">
+                                        <img id="imagePreview" class="img-fluid rounded border" style="max-height: 200px;">
+                                        <div class="mt-2">
+                                            <button id="reuploadBtn" class="btn btn-sm btn-outline-secondary me-2">
+                                                <i class="fas fa-redo me-1"></i> 重新上传
+                                            </button>
+                                            <button id="confirmUploadBtn" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-check me-1"></i> 确认识别
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧结果区域 -->
+                        <div class="col-md-7">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-file-medical me-2"></i> 识别结果</h5>
+                                    <button id="importToEmrBtn" class="btn btn-sm btn-light" disabled>
+                                        <i class="fas fa-file-import me-1"></i> 导入病历
+                                    </button>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="transcript-container" id="docResult">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fas fa-file-alt fa-2x"></i>
+                                            <p class="mt-2">识别结果将显示在这里</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 智能问答 ZJY-->
+                <div class="tab-pane fade" id="faychat" role="tabpanel">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-robot me-2"></i> Fay 医疗问答</h5>
+                        </div>
+                        <div class="card-body p-0"
+                            style="height:300px; overflow-y:auto;" id="chatMessages">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-comments fa-2x"></i>
+                            <p class="mt-2">开始提问吧～</p>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input id="chatInput" type="text" class="form-control"
+                            placeholder="请输入问题，例如：‘糖尿病患者能吃什么水果？’">
+                        <button id="sendChatBtn" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- 智能问答 ZJY-->
+
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">病历已更新!</div>
+
+    <!-- 接口调用的脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const recordBtn = document.getElementById('recordBtn');
+            const transcript = document.getElementById('transcript');
+            const emrContainer = document.getElementById('emrContainer');
+            const fileTranscriptContainer = document.getElementById('fileTranscriptContainer');
+            const fileEmrContainer = document.getElementById('fileEmrContainer');
+            const notification = document.getElementById('notification');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const recordingStatusIcon = document.getElementById('recordingStatusIcon');
+            const recordingStatusText = document.getElementById('recordingStatusText');
+            const openCameraBtn = document.getElementById('openCameraBtn');
+            const cameraView = document.getElementById('cameraView');
+            const uploadView = document.getElementById('uploadView');
+            const cameraPreview = document.getElementById('cameraPreview');
+            const takePhotoBtn = document.getElementById('takePhotoBtn');
+            const docUpload = document.getElementById('docUpload');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const reuploadBtn = document.getElementById('reuploadBtn');
+            const confirmUploadBtn = document.getElementById('confirmUploadBtn');
+            const ocrProgress = document.getElementById('ocrProgress');
+            const progressText = document.getElementById('progressText');
+            const importToEmrBtn = document.getElementById('importToEmrBtn');
+            
+            let isRecording = false;
+            let websocket;
+            let currentImageFile = null;
+            let stream = null;
+
+            // ========= Fay Chat =========
+            // ZJY
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput     = document.getElementById('chatInput');
+            const sendChatBtn   = document.getElementById('sendChatBtn');
+
+            function appendMsg(role, text) {
+                const color = role === 'user' ? '#1cc88a' : '#4e73df';
+                const div = document.createElement('div');
+                div.className = 'p-2';
+                div.innerHTML =
+                    `<span style="color:${color};font-weight:600">${role==='user'?'我':'Fay'}：</span> ${text}`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            sendChatBtn.addEventListener('click', () => {
+                const q = chatInput.value.trim();
+                if (!q) return;
+                appendMsg('user', q);
+                websocket.send(JSON.stringify({ command: 'fay_chat', question: q }));
+                chatInput.value = '';
+            });
+            //ZJY
+            // ========= Fay Chat =========
+            
+            // 打开摄像头
+            openCameraBtn.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'environment' } 
+                    });
+                    cameraPreview.srcObject = stream;
+                    cameraView.style.display = 'block';
+                    uploadView.style.display = 'none';
+                } catch (err) {
+                    showNotification('无法访问摄像头: ' + err.message);
+                }
+            });
+
+            // 拍摄照片
+            takePhotoBtn.addEventListener('click', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = cameraPreview.videoWidth;
+                canvas.height = cameraPreview.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob(blob => {
+                    currentImageFile = new File([blob], 'medical_report.jpg', { type: 'image/jpeg' });
+                    showImagePreview(URL.createObjectURL(blob));
+                    stopCamera();
+                }, 'image/jpeg', 0.8);
+            });
+
+            // 文件上传处理
+            docUpload.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    currentImageFile = this.files[0];
+                    showImagePreview(URL.createObjectURL(this.files[0]));
+                }
+            });
+
+            // 重新上传
+            reuploadBtn.addEventListener('click', () => {
+                imagePreviewContainer.style.display = 'none';
+                uploadView.style.display = 'block';
+                currentImageFile = null;
+            });
+
+            // 确认识别
+            confirmUploadBtn.addEventListener('click', () => {
+                if (!currentImageFile) {
+                    showNotification('请先上传报告图片');
+                    return;
+                }
+                
+                startOCRProcess(currentImageFile);
+            });
+
+            // 显示图片预览
+            function showImagePreview(imageUrl) {
+                imagePreview.src = imageUrl;
+                imagePreviewContainer.style.display = 'block';
+                uploadView.style.display = 'none';
+                cameraView.style.display = 'none';
+            }
+
+            // 停止摄像头
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    cameraPreview.srcObject = null;
+                    stream = null;
+                }
+                cameraView.style.display = 'none';
+                uploadView.style.display = 'block';
+            }
+
+            // 开始OCR处理
+            function startOCRProcess(file) {            
+                const reader = new FileReader();
+                reader.onload = function() {                    
+                    const base64Data = reader.result.split(',')[1];
+                    websocket.send(JSON.stringify({
+                        command: "process_medical_report",
+                        filename: file.name,
+                        data: base64Data
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // 生成病历按钮点击事件
+            document.getElementById('generateFromTranscriptBtn').addEventListener('click', function() {
+                if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                    alert('请先连接到服务器');
+                    return;
+                }
+                
+                // 发送生成病历命令
+                websocket.send(JSON.stringify({ command: 'generate_emr' }));
+                
+                // 显示加载状态
+                emrContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">正在生成病历...</p></div>';
+            });
+
+            // 从文件生成病历按钮点击事件
+            document.getElementById('generateFromFileBtn').addEventListener('click', function() {
+                if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                    alert('请先连接到服务器');
+                    return;
+                }
+                
+                // 发送生成病历命令
+                websocket.send(JSON.stringify({ command: 'generate_emr_from_file' }));
+                
+                // 显示加载状态
+                fileEmrContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">正在生成病历...</p></div>';
+            });
+
+            // 连接WebSocket服务器
+            function connectWebSocket() {
+                websocket = new WebSocket('ws://localhost:8765');
+                
+                websocket.onopen = function() {
+                    console.log('WebSocket连接已建立');
+                    connectionStatus.textContent = '已连接后端服务';
+                    
+                    // 初始化病历显示
+                    updateEMRDisplay({
+                        "主诉": "",
+                        "现病史": "",
+                        "既往史": "",
+                        "体征": "",
+                        "实验室检查结果": "",
+                        "医生建议": ""
+                    }, emrContainer);
+                    
+                    updateEMRDisplay({
+                        "主诉": "",
+                        "现病史": "",
+                        "既往史": "",
+                        "体征": "",
+                        "实验室检查结果": "",
+                        "医生建议": ""
+                    }, fileEmrContainer);
+                };
+                
+                websocket.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    
+                    switch(data.type) {
+                         case 'text_emr':  // 新增文本生成病历的处理
+                            updateEMRDisplay(data.data, document.getElementById('textEmrContainer'));
+                            showNotification("病历已生成");
+                            break;
+                            
+                        case 'transcript':
+                            // 更新完整转录内容
+                            transcript.innerHTML = data.data.split('\n').map(line => 
+                                `<p>${line}</p>`
+                            ).join('');
+                            transcript.scrollTop = transcript.scrollHeight;
+                            break;
+                            
+                        case 'file_transcript':
+                            // 更新文件转录内容
+                            fileTranscriptContainer.innerHTML = data.data.split('\n').map(line => 
+                                `<p>${line}</p>`
+                            ).join('');
+                            fileTranscriptContainer.scrollTop = fileTranscriptContainer.scrollHeight;
+                            break;
+                            
+                        case 'emr':
+                            if (Object.values(data.data).some(value => value.trim() !== '')) {
+                                updateEMRDisplay(data.data, emrContainer);
+                                showNotification("病历已更新");
+                            }
+                            break;
+                            
+                        case 'file_emr':
+                            if (Object.values(data.data).some(value => value.trim() !== '')) {
+                                updateEMRDisplay(data.data, fileEmrContainer);
+                                showNotification("病历已更新");
+                            }
+                            break;
+                            
+                        case 'document_result':
+                            // 渲染结构化病历
+                            const emrData = data.data;
+                            let emrHTML = '';
+                            
+                            for (const [key, value] of Object.entries(emrData)) {
+                                emrHTML += `
+                                <div class="report-section">
+                                    <h5 class="section-title">
+                                        <i class="fas fa-stethoscope me-2"></i> ${key}
+                                    </h5>
+                                    <div class="section-content">${value || '暂无信息'}</div>
+                                </div>
+                                `;
+                            }
+                            
+                            document.getElementById('docResult').innerHTML = emrHTML;
+                            importToEmrBtn.disabled = false;
+                            showNotification("病历已生成");
+                            break;
+
+                        case 'status':
+                            // 更新状态
+                            recordingStatusText.textContent = data.data;
+                            break;
+
+                        //ZJY
+                        case 'fay_chat_response':
+                            appendMsg('assistant', data.answer);
+                            break;
+                        //ZJY
+
+                            
+                        case 'error':
+                            showNotification(data.message || "发生错误");
+                            break;
+                    }
+                };
+                
+                websocket.onerror = function(error) {
+                    console.error('WebSocket错误:', error);
+                    connectionStatus.textContent = '连接错误';
+                };
+                
+                websocket.onclose = function(e) {
+                    console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
+                    console.log(e)
+                    
+                    // 5秒后尝试重新连接
+                    setTimeout(connectWebSocket, 5000);
+                };
+            }
+            
+            // 初始化WebSocket连接
+            connectWebSocket();
+            
+
+
+            // 导入到病历按钮
+            importToEmrBtn.addEventListener('click', function() {
+                if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                    showNotification('服务未连接');
+                    return;
+                }
+                
+                websocket.send(JSON.stringify({
+                    command: "import_medical_report"
+                }));
+                
+                showNotification('正在导入病历...');
+            });
+
+            // 更新病历显示
+            function updateEMRDisplay(data, container) {
+                let html = '';
+                
+                for (const [key, value] of Object.entries(data)) {
+                    html += `
+                    <div class="emr-section">
+                        <div class="emr-label">
+                            <i class="fas fa-stethoscope"></i> ${key}
+                        </div>
+                        <div class="emr-content">${value || '等待数据...'}</div>
+                    </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+            }
+            
+            // 显示通知
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // 控制录音
+            recordBtn.addEventListener('click', function() {
+                isRecording = !isRecording;
+                
+                if (isRecording) {
+                    // 开始录音
+                    recordBtn.textContent = '停止录音';
+                    recordBtn.classList.add('recording');
+                    recordingStatusIcon.classList.replace('status-idle', 'status-recording');
+                    recordingStatusText.textContent = '录音中';
+                    
+                    // 清空内容
+                    transcript.innerHTML = '';
+                    emrContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">正在分析对话内容...</p></div>';
+                    
+                    // 发送开始命令
+                    if (websocket && websocket.readyState === WebSocket.OPEN) {
+                        websocket.send(JSON.stringify({ command: 'start' }));
+                    }
+                    
+                } else {
+                    // 停止录音
+                    recordBtn.textContent = '开始录音';
+                    recordBtn.classList.remove('recording');
+                    recordingStatusIcon.classList.replace('status-recording', 'status-idle');
+                    recordingStatusText.textContent = '待机';
+                    
+                    // 发送停止命令
+                    if (websocket && websocket.readyState === WebSocket.OPEN) {
+                        websocket.send(JSON.stringify({ command: 'stop' }));
+                    }
+                }
+            });
+            
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) {
+                    console.log('未选择文件');
+                    return;
+                }
+                
+                console.log('已选择文件:', file.name, '大小:', file.size, '类型:', file.type);
+                
+                // 更新UI状态
+                document.getElementById('fileName').textContent = `已选择: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`;
+                document.getElementById('generateFromFileBtn').disabled = false;
+                
+                // 显示加载状态
+                const container = document.getElementById('fileTranscriptContainer');
+                container.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> 处理中...</div>';
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    console.log('文件读取完成，开始上传...');
+                    const base64Data = e.target.result;
+                    
+                    // 提取纯Base64部分（去掉data:audio/mp3;base64,前缀）
+                    const base64Content = base64Data.split(',')[1];
+                    
+                    if (!base64Content) {
+                        console.error('Base64数据提取失败');
+                        container.innerHTML = '<div class="alert alert-danger">文件格式不正确</div>';
+                        return;
+                    }
+                    
+                    if (websocket && websocket.readyState === WebSocket.OPEN) {
+                        console.log('通过WebSocket发送文件数据...');
+                        websocket.send(JSON.stringify({
+                            command: 'process_audio',
+                            filename: file.name,
+                            filetype: file.type,
+                            data: base64Content
+                        }));
+                    } else {
+                        console.error('WebSocket未连接');
+                        container.innerHTML = '<div class="alert alert-danger">服务未连接，请稍后重试</div>';
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    console.error('文件读取错误:', error);
+                    container.innerHTML = '<div class="alert alert-danger">文件读取失败</div>';
+                };
+                
+                // 开始读取文件
+                console.log('开始读取文件...');
+                reader.readAsDataURL(file);
+            });
+            
+            // 从文本输入生成病历
+            document.getElementById('generateFromTextBtn').addEventListener('click', function() {
+                const textInput = document.getElementById('textInput');
+                const text = textInput.value.trim();
+                
+                if (!text) {
+                    alert('请输入医患对话内容');
+                    return;
+                }
+                
+                if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                    alert('请先连接到服务器');
+                    return;
+                }
+                
+                // 显示加载状态
+                const emrContainer = document.getElementById('emrContainer');
+                emrContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">正在生成病历...</p></div>';
+                
+                // 发送生成命令
+                websocket.send(JSON.stringify({
+                    command: 'generate_emr',
+                    source: 'text',  // 添加来源标识
+                    text: text
+                }));
+            });
+
+            document.getElementById('docUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const base64Data = reader.result.split(',')[1];
+                    
+                    // 显示加载状态
+                    document.getElementById('docResult').innerHTML = `
+                        <div class="text-center py-3">
+                            <i class="fas fa-spinner fa-spin"></i> 正在识别报告...
+                        </div>
+                    `;
+                    
+                    // 发送处理命令
+                    websocket.send(JSON.stringify({
+                        command: "process_document",
+                        filename: file.name,
+                        data: base64Data
+                    }));
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
