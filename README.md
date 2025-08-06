@@ -1,0 +1,2 @@
+# Multiple-Agents-Orchestration-Case-Study-Auxiliary-Medical-Diagnosis
+At INESA, a Smart City &amp; IT Solutions company, I developed a minimum viable full stack product for LLM based Auxiliary Medical Diagnosis. The workflow comprises 3 functional agents: voice agent, medical record generation agent and diagnostic assistant agent. Finally, a principle agent plans the workflow, and an evaluator agent acts as judge.
